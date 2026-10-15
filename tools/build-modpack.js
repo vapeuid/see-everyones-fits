@@ -68,7 +68,7 @@ const fail = (msg) => { console.error('BUILD FAILED: ' + msg); process.exit(1); 
     '## What now?',
     '',
     '1. **Start ReSkate.** The first start takes longer while the game merges the new mods.',
-    ...(hasDeck ? ["2. **Look at your board.** The default deck is now the See Everyone's Fits deck. That's how you know it worked."] : ['2. **Open your closet and board menu.** Hundreds of new items are there to wear.']),
+    ...(hasDeck ? ["2. **Open your board menu and equip the See Everyone's Fits deck.** If it's there, the pack worked."] : ['2. **Open your closet and board menu.** Hundreds of new items are there to wear.']),
     '3. **Join a busy session.** Fits that used to look stock now show for real.',
     '',
     `**This week: ${picked.length} mods, about ${(summary.usedMB / 1024).toFixed(1)} GB.** Picked by what players download`,
