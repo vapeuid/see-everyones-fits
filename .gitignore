@@ -7,3 +7,4 @@ reskate-sync.v1.js
 node_modules/
 dist/
 tools/private-words.txt
+release/pack-content/

@@ -54,6 +54,10 @@ const fail = (msg) => { console.error('BUILD FAILED: ' + msg); process.exit(1); 
   // the pack's own game content (the See Everyone's Fits deck, built with ReSkate Studio), if present
   const content = path.join(ROOT, 'release', 'pack-content');
   const hasDeck = fs.existsSync(path.join(content, 'layout.toc'));
+  // a park built in ReSkate's Park Editor and saved with "+ NEW PARK MOD" (parks/<map>.park.json) also counts as content
+  const parks = (() => { try { return fs.readdirSync(path.join(content, 'parks')).filter((p) => p.endsWith('.park.json')); } catch (_) { return []; } })();
+  const hasPark = parks.length > 0;
+  const hasContent = hasDeck || hasPark;
 
   const label = (i) => { const slots = [...new Set((i.items || []).map((x) => core.SLOT_LABEL[x.slot] || x.slot).filter((s) => s && s !== 'other'))]; return slots.join(', ') || '-'; };
   const readme = [
@@ -70,6 +74,10 @@ const fail = (msg) => { console.error('BUILD FAILED: ' + msg); process.exit(1); 
     '1. **Start ReSkate.** The first start takes longer while the game merges the new mods.',
     ...(hasDeck ? ["2. **Open your board menu and equip the See Everyone's Fits deck.** If it's there, the pack worked."] : ['2. **Open your closet and board menu.** Hundreds of new items are there to wear.']),
     '3. **Join a busy session.** Fits that used to look stock now show for real.',
+    ...(hasPark ? ["4. **Bonus:** load the See Everyone's Fits park from the overlay: **Build > Park mods**."] : []),
+    '',
+    '**Install it from the launcher (Mods > Get Mods).** That is what installs all the mods in the pack. Install .zip or',
+    'Manual Download only installs the list itself.',
     '',
     `**This week: ${picked.length} mods, about ${(summary.usedMB / 1024).toFixed(1)} GB.** Picked by what players download`,
     'and wear, with no two mods replacing the same game files, and nothing that changes your skin, face or body.',
@@ -96,18 +104,18 @@ const fail = (msg) => { console.error('BUILD FAILED: ' + msg); process.exit(1); 
     '',
   ].join('\n');
 
-  const name = `See_Everyones_Fits-modpack-${version}`;
+  const name = `${manifest.name}-${version}`;
   const stage = path.join(ROOT, 'dist', name);
   fs.rmSync(stage, { recursive: true, force: true }); fs.mkdirSync(stage, { recursive: true });
   fs.writeFileSync(path.join(stage, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
   fs.writeFileSync(path.join(stage, 'README.md'), readme);
   fs.copyFileSync(path.join(ROOT, 'release', 'icon.png'), path.join(stage, 'icon.png'));
-  if (hasDeck) fs.cpSync(content, stage, { recursive: true });   // layout.toc + Win32/ at the top: a real mod the launcher loads
+  if (hasContent) fs.cpSync(content, stage, { recursive: true, filter: (p) => !/manifest\.json$|README\.md$|icon\.png$/i.test(p) });   // layout.toc + Win32/ at the top: a real mod the launcher loads
   const problems = check(stage);
   if (problems.length) { console.error(problems.join('\n')); fail('privacy check found the lines above'); }
   const zip = path.join(ROOT, 'dist', name + '.zip');
   fs.rmSync(zip, { force: true });
   execFileSync(path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe'), ['-a', '-c', '-f', zip, '-C', stage, ...fs.readdirSync(stage)]);
   fs.writeFileSync(lastFile, JSON.stringify({ name: manifest.name, version, builtAt: new Date().toISOString(), capMB, usedMB: summary.usedMB, dependencies }, null, 2) + '\n');
-  console.log(`\nBuilt ${path.relative(ROOT, zip)}: ${picked.length} mods, ${summary.usedMB} MB. Upload it to Thunderstore (category Modpacks).${hasDeck ? "" : " (No deck yet: put the Studio-built deck mod in release/pack-content/.)"}`);
+  console.log(`\nBuilt ${path.relative(ROOT, zip)}: ${picked.length} mods, ${summary.usedMB} MB. Upload it to Thunderstore (category Modpacks).${hasContent ? "" : " (No content of its own yet: put the Park Editor park folder or a Studio deck mod in release/pack-content/.)"}`);
 })().catch((e) => fail(e.message));
