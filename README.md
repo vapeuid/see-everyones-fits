@@ -38,8 +38,8 @@ the more people use it.
 The app is only available here on GitHub (it is not on Thunderstore). It downloads the cosmetic mods themselves from
 Thunderstore, where ReSkate mods are hosted, so you never have to.
 
-1. Download **`See_Everyones_Fits-<version>.zip`** from the
-   [latest release](https://github.com/vapeuid/see-everyones-fits/releases/latest) (under *Assets*).
+1. **[Download See_Everyones_Fits.zip](https://github.com/vapeuid/see-everyones-fits/releases/latest/download/See_Everyones_Fits.zip)**
+   (always the newest version; also on the [releases page](https://github.com/vapeuid/see-everyones-fits/releases/latest)).
 2. Install the zip one of two ways:
    - Drag the zip into the ReSkate launcher's **Mods** tab, or
    - Extract it into a new folder inside your ReSkate `Mods` folder (e.g. `Mods\See_Everyones_Fits`).
