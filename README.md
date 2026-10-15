@@ -99,7 +99,8 @@ Yes, and you don't have to take our word for it: everything it runs is in this r
   in the Review tab (the same site the ReSkate launcher uses).
 - `ntfy.sh`: the optional community list. It shares only the Thunderstore names of your switched-on cosmetic mods,
   under a random id, and reads what other users posted in the last 12 hours. The list is public, and like any
-  website ntfy.sh sees your IP address. One switch in Settings turns it off.
+  website ntfy.sh sees your IP address. One switch in Settings turns it off. See exactly what is shared, live:
+  [ntfy.sh/see-everyones-fits-v1](https://ntfy.sh/see-everyones-fits-v1) (each message is one user: a random id and mod names).
 - `127.0.0.1`: the app window itself. It only answers your own PC and refuses requests from other websites.
 
 **The only places it writes to**
@@ -127,7 +128,8 @@ list what each mod adds or replaces and to build previews.
 
   ![VirusTotal: 0/64 for See_Everyones_Fits-1.1.0.zip](https://raw.githubusercontent.com/vapeuid/see-everyones-fits/main/release/virustotal-1.1.0.png)
 
-- SHA-256 checksum of each release zip: in the release notes. In PowerShell:
+- SHA-256 of the 1.1.0 zip: `7AC35C311322AF56DE1190E97A0402E59BCCC244F1E931EF3793D6E601203DCD` (each release lists its own
+  in the release notes). Check yours in PowerShell:
   `Get-FileHash .\See_Everyones_Fits.zip -Algorithm SHA256`
 
 ## Disk use
