@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>See Everyone's Fits</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='11' width='26' height='10' rx='5' fill='%23ff5b14'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --panel:rgba(16,14,40,.86); --panel2:rgba(32,26,70,.9); --txt:#ffffff; --dim:#cfc8e2;
+    --hi:#ffd23f; --hi2:#ff9f1c; --cyan:#3fe0d0; --pink:#ff4fa0; --red:#ff4f5e; --mint:#45f0a8;
+    --head:"Segoe UI Black", "Arial Black", "Helvetica Neue", sans-serif;
+    --cut:polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; }
+  body { background:#1d1640; color:var(--txt); font:14px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif; min-height:100vh; }
+  a { color:inherit; }
+  /* the skate park behind everything */
+  .bg { position:fixed; inset:0; z-index:-2; background:#0b1030 url(/bg.webp) center 40% / cover no-repeat; }
+  @media (max-aspect-ratio:1/1) { .bg { background-position:28% center; } }
+  .shade { position:fixed; inset:0; z-index:-1; background:linear-gradient(180deg, #070a1c99 0%, #070a1c33 30%, #070a1c66 65%, #070a1ccc 100%); }
+
+  /* ---------- header */
+  header { position:sticky; top:0; z-index:5; background:linear-gradient(180deg, #0b0a1ef2, #0b0a1ecc); border-bottom:2px solid #000; box-shadow:0 2px 0 #ffffff14; }
+  .bar { max-width:1180px; margin:0 auto; padding:8px 16px; display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+  .brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+  .brand svg { width:44px; height:22px; transform:rotate(-10deg); }
+  .word { font:900 20px/1 var(--head); letter-spacing:0; text-transform:uppercase; text-shadow:2px 2px 0 #000; }
+  .word b { font-weight:inherit; color:var(--hi); }
+  nav { display:flex; gap:6px; }
+  nav button { font:900 20px/1 var(--head); text-transform:uppercase; letter-spacing:.03em; background:transparent; color:var(--dim); border:0; padding:8px 14px; cursor:pointer; text-shadow:2px 2px 0 #000; }
+  nav button:hover { color:#fff; }
+  nav button.on { background:var(--hi); color:#120c00; text-shadow:none; box-shadow:3px 3px 0 #000; }
+  .grow { flex:1; }
+  .status { font:900 15px/1 var(--head); text-transform:uppercase; letter-spacing:.03em; padding:7px 14px; background:var(--mint); color:#032417; box-shadow:3px 3px 0 #000; white-space:nowrap; }
+  .status.busy { background:var(--red); color:#fff; }
+
+  /* ---------- layout */
+  .wrap { max-width:1180px; margin:0 auto; padding:24px 16px 70px; }
+  .hero { margin:16px 0 26px; }
+  .hero h1 { font:900 clamp(34px, 7vw, 76px)/.95 var(--head); text-transform:uppercase; margin:0; letter-spacing:-.01em; color:#fff; text-shadow:5px 5px 0 #000; }
+  .hero h1 span { color:var(--hi); }
+  .hero p { display:inline-block; margin:14px 0 0; padding:8px 14px; background:#0b0a1ecc; border-left:4px solid var(--cyan); max-width:560px; color:#eee9ff; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px; }
+  .card { background:var(--panel); clip-path:var(--cut); padding:16px 18px 18px; position:relative; border-top:2px solid #ffffff2a; }
+  .card h2 { display:inline-block; font:900 17px/1 var(--head); text-transform:uppercase; letter-spacing:.05em; margin:0 0 12px; padding:5px 14px; background:var(--cyan); color:#05211e; box-shadow:3px 3px 0 #000; }
+  .num { font:900 50px/1 var(--head); text-shadow:3px 3px 0 #000; }
+  .num small { font-size:22px; color:var(--dim); }
+  .note { color:var(--dim); font-size:12.5px; margin-top:8px; }
+  /* storage bar: THPS special meter */
+  .meter { height:16px; background:#00000088; border:2px solid #000; overflow:hidden; margin-top:12px; }
+  .meter i { display:block; height:100%; background:var(--hi); }
+
+  /* ---------- buttons */
+  .btn { font:900 19px/1 var(--head); text-transform:uppercase; letter-spacing:.04em; color:#120c00; border:2px solid #000; padding:12px 22px; cursor:pointer;
+    background:#eef0f7; box-shadow:4px 4px 0 #000; transition:transform .06s, box-shadow .06s, filter .1s; }
+  .btn:hover { filter:brightness(1.08); }
+  .btn:active { transform:translate(3px, 3px); box-shadow:1px 1px 0 #000; }
+  .btn.go { background:var(--hi); }
+  .btn.alt { background:var(--cyan); }
+  .btn.bad { background:var(--red); color:#fff; }
+  .btn:disabled { filter:grayscale(.8) brightness(.6); cursor:not-allowed; }
+  .row { display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+  .log { background:#05040fdd; border:2px solid #000; padding:10px 12px; font:12px/1.55 ui-monospace, Consolas, monospace; max-height:340px; overflow:auto; white-space:pre-wrap; color:#bff7ee; margin-top:16px; }
+
+  /* ---------- review */
+  .tools { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .chip { font:900 16px/1 var(--head); text-transform:uppercase; letter-spacing:.03em; background:#0b0a1ee0; color:var(--dim); border:2px solid #000; padding:7px 13px; cursor:pointer; display:inline-block; }
+  .chip.on { background:var(--hi); color:#120c00; }
+  input.text { background:#08071acc; border:2px solid #000; color:#fff; padding:10px 12px; font-size:14px; width:100%; outline:none; }
+  input.text:focus { border-color:var(--cyan); }
+  .mods { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:18px; margin-top:18px; }
+  .mod { background:var(--panel); clip-path:var(--cut); display:flex; flex-direction:column; border-top:2px solid #ffffff2a; }
+  .mod.skip { opacity:.45; } .mod.pin { box-shadow:inset 0 0 0 3px var(--hi); }
+  .pic { aspect-ratio:1; background:#0b0a1e center/cover no-repeat; position:relative; border-bottom:2px solid #000; }
+  .tape { position:absolute; top:12px; left:10px; font:900 15px/1 var(--head); text-transform:uppercase; letter-spacing:.03em; padding:5px 11px; background:#fff; color:#111; box-shadow:3px 3px 0 #000; }
+  .tape.planned { background:var(--mint); color:#032417; } .tape.clash { background:var(--hi); color:#241d00; } .tape.protected, .tape.remove { background:var(--red); color:#fff; }
+  .crew { position:absolute; bottom:10px; right:10px; font:900 14px/1 var(--head); text-transform:uppercase; background:#000c; color:var(--cyan); padding:5px 9px; }
+  .info { padding:12px 14px 16px; display:flex; flex-direction:column; gap:7px; flex:1; }
+  .name { font-weight:800; font-size:14.5px; overflow-wrap:anywhere; } .name a { text-decoration:none; } .name a:hover { color:var(--hi); }
+  .meta { color:var(--dim); font-size:12.5px; }
+  .tags { display:flex; flex-wrap:wrap; gap:5px; }
+  .tag { font-size:11.5px; background:#ffffff12; padding:2px 7px; color:var(--dim); }
+  .tag.slot { background:#3fe0d026; color:#c8fff8; font-weight:700; }
+  .why { font-size:12.5px; color:var(--hi); } .why.protected, .why.remove { color:#ff9aa5; }
+  .acts { display:flex; gap:10px; margin-top:auto; padding-top:6px; }
+  .acts button { flex:1; font:900 16px/1 var(--head); text-transform:uppercase; letter-spacing:.03em; background:#eef0f7; color:#120c00; border:2px solid #000; padding:8px 0; cursor:pointer; }
+  .acts button.on { background:var(--hi); } .acts button.off { background:var(--red); color:#fff; }
+  .empty { grid-column:1/-1; text-align:center; color:#fff; padding:50px 10px; font:900 26px/1.2 var(--head); text-transform:uppercase; text-shadow:3px 3px 0 #000; }
+
+  /* ---------- settings */
+  input[type=range] { width:100%; accent-color:var(--hi); margin-top:10px; }
+  .est { margin-top:8px; font-weight:700; color:var(--mint); }
+  label.tog { display:flex; align-items:center; gap:10px; padding:7px 0; cursor:pointer; }
+  label.tog input { width:20px; height:20px; accent-color:var(--hi); flex:none; }
+  .slots { display:flex; flex-wrap:wrap; gap:10px; }
+  .slots input { display:none; }
+  .tgroup { display:flex; gap:12px; align-items:baseline; padding:6px 0; flex-wrap:wrap; }
+  .tname { font:900 16px/1 var(--head); text-transform:uppercase; letter-spacing:.04em; color:var(--dim); width:100px; flex:none; text-shadow:2px 2px 0 #000; }
+  .tag.rep { background:#ff4f5e2a; color:#ffc9cf; }
+  .seebtn { display:block; width:100%; margin-top:4px; font:900 15px/1 var(--head); text-transform:uppercase; background:var(--pink); color:#fff; border:2px solid #000; padding:9px 0; cursor:pointer; box-shadow:3px 3px 0 #000; }
+  .seebtn:active { transform:translate(2px, 2px); box-shadow:1px 1px 0 #000; }
+  /* preview window */
+  div.look { position:fixed; inset:0; z-index:20; background:#05041099; display:grid; place-items:center; padding:16px; }
+  .lookbox { width:min(900px, 100%); max-height:100%; overflow:auto; background:var(--panel); clip-path:var(--cut); padding:16px 18px 18px; border-top:2px solid #ffffff2a; }
+  .looktitle { font:900 24px/1.1 var(--head); text-transform:uppercase; margin:0; text-shadow:3px 3px 0 #000; overflow-wrap:anywhere; }
+  .lookitems { display:flex; gap:8px; flex-wrap:wrap; margin:14px 0; max-height:120px; overflow:auto; }
+  .lookitems .chip { font-size:13px; text-transform:none; }
+  .lookstage { height:min(60vh, 520px); background:radial-gradient(circle at 50% 40%, #3a2b6b, #120f2a 70%); border:2px solid #000; position:relative; display:grid; place-items:center; overflow:hidden; }
+  .lookstage canvas { width:100%; height:100%; display:block; cursor:grab; touch-action:none; }
+  .lookmsg { text-align:center; color:var(--dim); padding:20px; max-width:460px; }
+  .lookmsg b { color:#fff; font:900 18px/1.3 var(--head); text-transform:uppercase; }
+  .ba { display:flex; gap:14px; padding:14px; width:100%; height:100%; justify-content:center; }
+  .ba figure { margin:0; flex:1; display:flex; flex-direction:column; min-width:0; max-width:420px; }
+  .ba img { width:100%; flex:1; min-height:0; object-fit:contain; image-rendering:auto; background:#0006; }
+  .ba figcaption { font:900 14px/1 var(--head); text-transform:uppercase; text-align:center; padding-top:8px; }
+  [hidden] { display:none !important; }
+
+  @media (max-width:640px) {
+    .bar { gap:8px; } .word { font-size:20px; } nav button { font-size:17px; padding:7px 9px; }
+    .status { order:3; } .btn { flex:1 1 auto; }
+  }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div><div class="shade"></div>
+<header>
+  <div class="bar">
+    <a class="brand" href="#" aria-label="See Everyone's Fits">
+      <svg viewBox="0 0 92 44" aria-hidden="true"><rect x="2" y="6" width="88" height="32" rx="16" fill="#ffd23f" stroke="#000" stroke-width="3"/><path d="M14 22 H78" stroke="#ff4fa0" stroke-width="6"/><g fill="#000"><circle cx="20" cy="15" r="2.2"/><circle cx="20" cy="29" r="2.2"/><circle cx="72" cy="15" r="2.2"/><circle cx="72" cy="29" r="2.2"/></g></svg>
+      <span class="word">See Everyone's <b>Fits</b></span>
+    </a>
+    <nav id="nav"><button data-tab="home" class="on">Home</button><button data-tab="review">Review</button><button data-tab="settings">Settings</button></nav>
+    <div class="grow"></div>
+    <span class="status" id="gamePill">...</span>
+  </div>
+</header>
+
+<main>
+<section class="wrap" id="tab-home">
+  <div class="hero">
+    <h1>See everyone's <span>fits</span></h1>
+    <p>Keeps the most-worn cosmetics and boards from Thunderstore installed, so other skaters' modded outfits actually show up for you.</p>
+  </div>
+  <div class="grid">
+    <div class="card"><h2>Synced mods</h2><div class="num" id="count">-</div><div class="note" id="countNote"></div></div>
+    <div class="card"><h2>Storage</h2><div class="num" id="storage">-</div><div class="meter"><i id="storageBar" style="width:0"></i></div><div class="note">ReSkate keeps its own merged copy, so real disk use can be up to about double.</div></div>
+    <div class="card"><h2>Last check</h2><div class="num" id="lastPlan">-</div><div class="note" id="lastPlanNote"></div></div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <div class="row">
+      <button class="btn alt" id="btnPreview">Check for changes</button>
+      <button class="btn go" id="btnSync">Sync now</button>
+      <div class="grow"></div>
+      <button class="btn bad" id="btnClear">Remove all synced</button>
+    </div>
+    <div class="note">"Check for changes" downloads and inspects candidates but changes nothing. "Sync now" installs them - close the ReSkate launcher and the game first. New cosmetics load the next time you start the game.</div>
+    <div class="log" id="log" hidden></div>
+  </div>
+</section>
+
+<section class="wrap" id="tab-review" hidden>
+  <div class="tools">
+    <div id="filters" class="tools"></div>
+    <div class="grow"></div>
+    <input class="text" id="q" placeholder="Search name or item" style="max-width:240px">
+    <button class="btn go" id="btnSave">Save choices</button>
+  </div>
+  <div class="note" id="reviewNote"></div>
+  <div class="mods" id="mods"></div>
+</section>
+
+<section class="wrap" id="tab-settings" hidden>
+  <div class="grid">
+    <div class="card"><h2>Storage limit</h2><div class="num" id="capLabel">-</div><input type="range" id="cap" min="500" max="20000" step="250"><div class="est" id="capEst"></div><div class="note">Space for synced cosmetics; your own mods do not count. <span id="freeNote"></span></div></div>
+    <div class="card"><h2>Biggest single mod</h2><div class="num" id="maxLabel">-</div><input type="range" id="maxMod" min="20" max="500" step="10"><div class="note">Bigger packs are skipped.</div></div>
+  </div>
+  <div class="card" style="margin-top:18px"><h2>What gets added</h2>
+    <div id="types"></div>
+    <div class="note">Tap to switch a type on or off. A mod that has anything you switched off is skipped completely. "Your skater" types can change how you look, so skin, face and body start off.</div>
+  </div>
+  <div class="card" style="margin-top:18px"><h2>Options</h2>
+    <label class="tog"><input type="checkbox" id="nsfw"> Include mods flagged NSFW on Thunderstore</label>
+    <label class="tog"><input type="checkbox" id="community"> Community list: rank by what other See Everyone's Fits users actually wear (anonymous, shares only mod names)</label>
+  </div>
+  <div class="card" style="margin-top:18px"><h2>ReSkate folder</h2><input class="text" id="dir"><div class="note" id="dirNote"></div></div>
+  <div class="row" style="margin-top:18px"><button class="btn go" id="btnSettings">Save settings</button><span class="note" id="setNote"></span></div>
+</section>
+</main>
+
+<div class="look" id="look" hidden>
+  <div class="lookbox">
+    <div class="row"><h2 class="looktitle" id="lookTitle"></h2><div class="grow"></div><button class="btn" id="lookClose">Close</button></div>
+    <div class="lookitems" id="lookItems"></div>
+    <div class="lookstage" id="lookStage"></div>
+    <div class="note" id="lookNote"></div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const api = (u, body) => fetch(u, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}).then((r) => r.json());
+const gb = (mbv) => (mbv >= 1000 ? (mbv / 1024).toFixed(mbv % 1024 ? 1 : 0) + ' GB' : mbv + ' MB');
+let ST = null, REV = null, COV = null, FILTER = 'planned', Q = '', choice = {}, lastJobAt = null;
+
+// ---------------------------------------------------------------- tabs
+$('nav').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-tab]'); if (!b) return;
+  document.querySelectorAll('nav button').forEach((x) => x.classList.toggle('on', x === b));
+  ['home', 'review', 'settings'].forEach((t) => ($('tab-' + t).hidden = t !== b.dataset.tab));
+  if (b.dataset.tab === 'review') loadReview();
+  if (b.dataset.tab === 'settings') loadCoverage();
+});
+
+// ---------------------------------------------------------------- home
+async function refresh() {
+  ST = await api('/api/state');
+  const s = ST.status, busy = s.running.length > 0;
+  $('gamePill').className = 'status' + (busy ? ' busy' : ''); $('gamePill').textContent = busy ? 'ReSkate is open - close it to sync' : 'Ready to drop in';
+  $('count').textContent = s.count; $('countNote').textContent = s.count ? `Biggest: ${s.mods.slice(0, 3).map((m) => m.name.split('-').slice(1).join('-').replace(/_/g, ' ')).join(', ')}` : 'Nothing synced yet.';
+  $('storage').innerHTML = `${esc(gb(Math.round(s.usedMB)))} <small>/ ${esc(gb(s.capMB))}</small>`; $('storageBar').style.width = Math.min(100, (s.usedMB / s.capMB) * 100) + '%';
+  $('btnSync').disabled = busy || ST.job.running; $('btnPreview').disabled = ST.job.running; $('btnClear').disabled = busy || ST.job.running || !s.count;
+  if (ST.job.running || (ST.job.finishedAt && ST.job.finishedAt !== lastJobAt)) pollJob();
+  if (!document.activeElement || !$('tab-settings').contains(document.activeElement)) fillSettings();
+  if (ST.hasReview) { const r = REV || await api('/api/review'); REV = r; $('lastPlan').innerHTML = `${r.newCount || 0} <small>new</small> ${r.removeCount || 0} <small>out</small>`; $('lastPlanNote').textContent = `Checked ${new Date(r.at).toLocaleString()} · planned ${gb(Math.round(r.usedMB))}`; }
+  else { $('lastPlan').textContent = '-'; $('lastPlanNote').textContent = 'Press "Check for changes" to see what a sync would do.'; }
+}
+async function run(action) {
+  if (action === 'clear' && !confirm('Remove every mod this app installed? Your own mods stay.')) return;
+  await api('/api/run', { action }); $('log').hidden = false; $('log').textContent = ''; pollJob();
+}
+let polling = false;
+async function pollJob() {
+  if (polling) return; polling = true;
+  try {
+    for (;;) {
+      const j = await api('/api/job'); $('log').hidden = false; $('log').textContent = j.lines.join('\n'); $('log').scrollTop = 1e9;
+      if (!j.running) { lastJobAt = j.finishedAt; REV = null; await refresh(); break; }
+      await new Promise((r) => setTimeout(r, 800));
+    }
+  } finally { polling = false; }
+}
+$('btnPreview').onclick = () => run('preview'); $('btnSync').onclick = () => run('sync'); $('btnClear').onclick = () => run('clear');
+
+// ---------------------------------------------------------------- review
+const TYPE_GROUPS = [['Board', ['boards']], ['Clothes', ['tops', 'bottoms', 'costumes', 'socks', 'shoes']], ['Extras', ['hats', 'glasses', 'accessories']], ['Your skater', ['hair', 'tattoos', 'face', 'body', 'skin']]];
+const FILTERS = [['planned', 'Will install'], ['clash', 'Clashes'], ['protected', 'Turned off'], ['remove', 'To remove'], ['all', 'All']];
+async function loadReview() {
+  REV = await api('/api/review'); choice = {};
+  (REV.pins || []).forEach((n) => (choice[n] = 'pin')); (REV.block || []).forEach((n) => (choice[n] = 'skip'));
+  $('reviewNote').textContent = REV.at ? `From the check on ${new Date(REV.at).toLocaleString()}. Pinned mods go in first and win clashes; skipped mods are never installed. Save, then Sync now.` : 'Run "Check for changes" on Home first.';
+  drawReview();
+}
+function drawReview() {
+  const all = REV.items || [];
+  $('filters').innerHTML = FILTERS.map(([k, l]) => `<button class="chip${k === FILTER ? ' on' : ''}" data-f="${k}">${l} ${k === 'all' ? all.length : all.filter((x) => x.status === k).length}</button>`).join('');
+  const list = all.filter((x) => (FILTER === 'all' || x.status === FILTER) && (!Q || (x.name + ' ' + (x.items || []).map((i) => i.slot + ' ' + i.item).join(' ')).toLowerCase().includes(Q)));
+  $('mods').innerHTML = list.length ? list.map(card).join('') : '<div class="empty">Nothing here.</div>';
+}
+function card(x) {
+  const c = choice[x.name]; const slots = [...new Set((x.items || []).map((i) => (ST && ST.slotLabels && ST.slotLabels[i.slot]) || i.slot))];
+  const label = { planned: 'Will install', clash: 'Clash', protected: 'Turned off', remove: 'To remove' }[x.status] || x.status;
+  const src = x.source === 'community' ? `${x.community} users wear it` : x.source === 'pinned' ? 'Pinned' : '';
+  return `<div class="mod${c === 'skip' ? ' skip' : c === 'pin' ? ' pin' : ''}">
+    <div class="pic" style="background-image:url('${esc(x.icon || '')}')"><span class="tape ${x.status}">${label}</span>${src ? `<span class="crew">${esc(src)}</span>` : ''}</div>
+    <div class="info">
+      <div class="name">${x.page ? `<a href="${esc(x.page)}" target="_blank" rel="noopener">${esc(x.name)}</a>` : esc(x.name)}</div>
+      <div class="meta">${x.mb} MB${x.downloads ? ` · ${Number(x.downloads).toLocaleString()} downloads` : ''} · v${esc(x.version)}</div>
+      <div class="tags">${slots.map((s) => `<span class="tag slot">${esc(s)}</span>`).join('')}${(x.items || []).slice(0, 5).map((i) => `<span class="tag${i.change === 'replaces' ? ' rep' : ''}">${i.change === 'replaces' ? 'replaces ' : ''}${esc(i.item)}${i.colorway ? ' #' + esc(i.colorway) : ''}</span>`).join('')}${(x.items || []).length > 5 ? `<span class="tag">+${x.items.length - 5} more</span>` : ''}</div>
+      ${x.why ? `<div class="why ${x.status}">${esc(x.why)}</div>` : ''}
+      ${(x.items || []).some((i) => i.key) ? `<button class="seebtn" data-look="${esc(x.name)}">See it in 3D</button>` : ''}
+      ${x.status !== 'remove' ? `<div class="acts"><button data-n="${esc(x.name)}" data-c="pin" class="${c === 'pin' ? 'on' : ''}">${c === 'pin' ? 'Pinned' : 'Pin'}</button><button data-n="${esc(x.name)}" data-c="skip" class="${c === 'skip' ? 'off' : ''}">${c === 'skip' ? 'Skipped' : 'Skip'}</button></div>` : ''}
+    </div></div>`;
+}
+document.addEventListener('click', (e) => {
+  const f = e.target.closest('[data-f]'); if (f) { FILTER = f.dataset.f; drawReview(); return; }
+  const b = e.target.closest('[data-c]'); if (b) { const n = b.dataset.n, c = b.dataset.c; choice[n] = choice[n] === c ? undefined : c; drawReview(); return; }
+  const l = e.target.closest('[data-look]'); if (l) openLook(l.dataset.look);
+});
+
+// ---------------------------------------------------------------- 3D / texture previews
+let VIEW = null, LOOK = null;
+function openLook(name) {
+  const x = (REV.items || []).find((i) => i.name === name); if (!x) return;
+  LOOK = { x, items: (x.items || []).filter((i) => i.key) };
+  $('lookTitle').textContent = name.split('-').slice(1).join('-').replace(/_/g, ' ') || name;
+  $('lookItems').innerHTML = LOOK.items.map((i, n) => `<button class="chip${n === 0 ? ' on' : ''}" data-item="${n}">${i.change === 'replaces' ? 'Replaces: ' : ''}${esc(i.item)}</button>`).join('');
+  $('look').hidden = false; document.body.style.overflow = 'hidden';
+  showItem(0, false);
+}
+function closeLook() { $('look').hidden = true; document.body.style.overflow = ''; if (VIEW) { VIEW.dispose(); VIEW = null; } $('lookStage').innerHTML = ''; LOOK = null; }
+async function showItem(n, force) {
+  const it = LOOK.items[n]; if (!it) return;
+  document.querySelectorAll('[data-item]').forEach((b) => b.classList.toggle('on', +b.dataset.item === n));
+  if (VIEW) { VIEW.dispose(); VIEW = null; }
+  const stage = $('lookStage'); stage.innerHTML = '<div class="lookmsg">Building the preview... (a few seconds the first time)</div>'; $('lookNote').textContent = '';
+  const want = LOOK;
+  let r; try { r = await api(`/api/preview?mod=${encodeURIComponent(LOOK.x.name)}&key=${encodeURIComponent(it.key)}${force ? '&force=1' : ''}`); } catch (e) { r = { ok: false, reason: 'the app did not answer' }; }
+  if (LOOK !== want) return;
+  if (!r.ok) {
+    stage.innerHTML = `<div class="lookmsg"><b>No preview for this item.</b><br>${esc(r.reason || 'unknown reason')}<br><button class="btn" id="lookRetry" style="margin-top:14px">Try again</button></div>`;
+    $('lookRetry').onclick = () => showItem(n, true);
+    $('lookNote').textContent = 'Previews read the mod\'s own files. Some layouts are not supported yet; the mod itself still works in game.';
+    return;
+  }
+  if (r.kind === 'mesh') {
+    stage.innerHTML = '<canvas id="lookCanvas"></canvas>';
+    try { VIEW = ModelViewer($('lookCanvas')); const s = await VIEW.load(r.files.find((f) => f.endsWith('.glb'))); $('lookNote').textContent = `${s.triangles.toLocaleString()} triangles · drag to turn, scroll to zoom. ${r.info && r.info.tint === 'not applied' ? 'Colours could not be applied to this one, so it may look plainer than in game.' : 'Logos and printed graphics are not shown yet.'}`; }
+    catch (e) { stage.innerHTML = `<div class="lookmsg">${esc(e.message)}</div>`; }
+  } else if (r.kind === 'before-after') {
+    const png = (s) => r.files.find((f) => f.endsWith(s));
+    stage.innerHTML = `<div class="ba"><figure><img src="${png('-before.png')}" alt=""><figcaption>Stock</figcaption></figure><figure><img src="${png('-after.png')}" alt=""><figcaption>With this mod</figcaption></figure></div>`;
+    $('lookNote').textContent = 'This mod repaints a stock item: stock texture on the left, the mod\'s version on the right.';
+  } else {
+    stage.innerHTML = `<div class="ba"><figure><img src="${r.files.find((f) => f.endsWith('.png'))}" alt=""><figcaption>Artwork</figcaption></figure></div>`;
+    $('lookNote').textContent = 'Flat artwork (deck graphic, grip or sticker).';
+  }
+}
+$('lookItems').addEventListener('click', (e) => { const b = e.target.closest('[data-item]'); if (b) showItem(+b.dataset.item, false); });
+$('lookClose').onclick = closeLook;
+$('look').addEventListener('click', (e) => { if (e.target === $('look')) closeLook(); });
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('look').hidden) closeLook(); });
+$('q').addEventListener('input', (e) => { Q = e.target.value.trim().toLowerCase(); drawReview(); });
+$('btnSave').onclick = async () => {
+  const pins = Object.keys(choice).filter((n) => choice[n] === 'pin'), block = Object.keys(choice).filter((n) => choice[n] === 'skip');
+  const r = await api('/api/choices', { pins, block }); alert(r.ok ? `Saved: ${pins.length} pinned, ${block.length} skipped. Go to Home and press Sync now.` : 'Save failed');
+};
+
+// ---------------------------------------------------------------- settings
+let filled = false;
+function fillSettings() {
+  if (filled) return; filled = true; const c = ST.config;
+  $('cap').value = c.capMB; showCap();
+  $('maxMod').value = c.maxModMB; $('maxLabel').textContent = c.maxModMB + ' MB';
+  $('types').innerHTML = TYPE_GROUPS.map(([g, list]) => `<div class="tgroup"><div class="tname">${g}</div><div class="slots">${list.filter((s) => ST.slots.includes(s)).map((s) => { const on = !c.protect.includes(s); return `<label class="chip${on ? ' on' : ''}"><input type="checkbox" data-type="${s}" ${on ? 'checked' : ''}>${esc((ST.slotLabels || {})[s] || s)}</label>`; }).join('')}</div></div>`).join('');
+  $('nsfw').checked = !!c.includeNsfw; $('community').checked = !!c.community;
+  $('dir').value = ST.game || c.reskateDir || ''; $('dir').readOnly = !!ST.inMods;
+  $('dirNote').textContent = ST.inMods ? "Found automatically: this app sits in the game's Mods folder." : ST.game ? 'The folder that holds Skate.exe and the Mods folder.' : "Not found. Put the See Everyone's Fits folder in your ReSkate Mods folder (or install it from the ReSkate launcher), or type the ReSkate folder here.";
+}
+async function loadCoverage() { if (COV) return; try { COV = await api('/api/coverage'); } catch (_) { COV = null; } showCap(); }
+function showCap() {
+  const v = +$('cap').value; $('capLabel').textContent = gb(v);
+  const p = COV && COV.points.reduce((best, x) => (Math.abs(x.capMB - v) < Math.abs(best.capMB - v) ? x : best), COV.points[0]);
+  $('capEst').textContent = p ? `≈ ${p.pct}% of modded fits you'll see · about ${p.mods} mods` : '';
+  $('freeNote').textContent = COV && COV.freeMB != null ? `${gb(COV.freeMB)} free on that drive; with ReSkate's own copy, plan for about ${gb(v * 2)}.` : '';
+}
+$('cap').oninput = showCap;
+$('maxMod').oninput = () => ($('maxLabel').textContent = $('maxMod').value + ' MB');
+$('types').addEventListener('change', (e) => { const l = e.target.closest('label'); if (l) l.classList.toggle('on', e.target.checked); });
+$('btnSettings').onclick = async () => {
+  const protect = [...document.querySelectorAll('[data-type]')].filter((i) => !i.checked).map((i) => i.dataset.type);
+  if (protect.length === ST.slots.length) { $('setNote').textContent = 'Switch at least one type on.'; return; }
+  const r = await api('/api/config', { capMB: +$('cap').value, maxModMB: +$('maxMod').value, protect, includeNsfw: $('nsfw').checked, community: $('community').checked, ...(ST.inMods ? {} : { reskateDir: $('dir').value.trim() }) });
+  COV = null; loadCoverage();
+  $('setNote').textContent = r.ok ? (!ST.inMods && r.config.reskateDir !== $('dir').value.trim() ? 'Saved, but that ReSkate folder has no Mods folder - kept the old one.' : 'Saved. Run "Check for changes" to see the effect.') : 'Save failed';
+};
+
+refresh(); setInterval(refresh, 5000);
+</script>
+<script src="/viewer.js"></script>
+</body>
+</html>

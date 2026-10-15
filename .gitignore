@@ -1,0 +1,9 @@
+cache/
+state.json
+review-data.json
+config.json
+*.bak*
+reskate-sync.v1.js
+node_modules/
+dist/
+tools/private-words.txt
