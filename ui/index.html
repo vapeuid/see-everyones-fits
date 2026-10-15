@@ -282,13 +282,13 @@ document.addEventListener('click', (e) => {
 
 // ---------------------------------------------------------------- 3D / texture previews
 let VIEW = null, LOOK = null;
-function openLook(name) {
+function openLook(name, start = 0) {
   const x = (REV.items || []).find((i) => i.name === name); if (!x) return;
   LOOK = { x, items: (x.items || []).filter((i) => i.key) };
   $('lookTitle').textContent = name.split('-').slice(1).join('-').replace(/_/g, ' ') || name;
   $('lookItems').innerHTML = LOOK.items.map((i, n) => `<button class="chip${n === 0 ? ' on' : ''}" data-item="${n}">${i.change === 'replaces' ? 'Replaces: ' : ''}${esc(i.item)}</button>`).join('');
   $('look').hidden = false; document.body.style.overflow = 'hidden';
-  showItem(0, false);
+  showItem(start, false);
 }
 function closeLook() { $('look').hidden = true; document.body.style.overflow = ''; if (VIEW) { VIEW.dispose(); VIEW = null; } $('lookStage').innerHTML = ''; LOOK = null; }
 async function showItem(n, force) {
@@ -357,7 +357,14 @@ $('btnSettings').onclick = async () => {
   $('setNote').textContent = r.ok ? (!ST.inMods && r.config.reskateDir !== $('dir').value.trim() ? 'Saved, but that ReSkate folder has no Mods folder - kept the old one.' : 'Saved. Run "Check for changes" to see the effect.') : 'Save failed';
 };
 
-refresh(); setInterval(refresh, 5000);
+// open a tab (or a mod's preview) from the address: #review, #settings, #look=<Team-Mod>:<item number>
+async function openFromHash() {
+  const h = decodeURIComponent(location.hash.slice(1)); if (!h) return;
+  const [tab, arg] = h.split('=');
+  const btn = document.querySelector(`[data-tab="${tab === 'look' ? 'review' : tab}"]`); if (btn) btn.click();
+  if (tab === 'look' && arg) { const [mod, n] = arg.split(':'); await loadReview(); openLook(mod, +n || 0); }
+}
+refresh().then(openFromHash); setInterval(refresh, 5000);
 </script>
 <script src="/viewer.js"></script>
 </body>

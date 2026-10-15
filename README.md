@@ -1,5 +1,7 @@
 # See Everyone's Fits
 
+![See Everyone's Fits](release/see-everyones-fits.gif)
+
 In ReSkate you only see someone's modded fit if you have that exact mod installed. Everyone else's drip shows up as
 stock gear for you. **See Everyone's Fits** fixes that: it keeps the most-worn cosmetic and board mods on Thunderstore
 installed for you, so the fits around you actually show.
