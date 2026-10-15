@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1
+
+- Fixed: Sync (and Clear) failed with "ENOENT ... copyfile" on a Mods folder without a mods.json, which is every
+  install whose mod order was never saved in the ReSkate launcher. The mod list is only backed up when it exists.
+
 ## 1.2.0
 
 - The app opens in its own window (no browser tabs or address bar), and its console starts minimized in the taskbar;
