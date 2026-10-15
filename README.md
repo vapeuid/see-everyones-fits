@@ -2,6 +2,8 @@
 
 ![See Everyone's Fits](https://raw.githubusercontent.com/vapeuid/see-everyones-fits/main/release/see-everyones-fits.gif)
 
+**[⬇ Download](https://github.com/vapeuid/see-everyones-fits/releases/latest/download/See_Everyones_Fits.zip)** · ✅ **[VirusTotal: 0/64 clean](https://www.virustotal.com/gui/file/7ac35c311322af56de1190e97a0402e59bccc244f1e931ef3793d6e601203dcd)** · Open source (GPL-3.0) · Windows · [Is it safe?](#is-it-safe)
+
 In ReSkate you only see someone's modded fit if you have that exact mod installed. Everyone else's drip shows up as
 stock gear for you. **See Everyone's Fits** fixes that: it keeps the most-worn cosmetic and board mods on Thunderstore
 installed for you, so the fits around you actually show.
@@ -45,6 +47,7 @@ mods are hosted, so you never have to.
 
 1. **[Download See_Everyones_Fits.zip](https://github.com/vapeuid/see-everyones-fits/releases/latest/download/See_Everyones_Fits.zip)**
    (always the newest version; also on the [releases page](https://github.com/vapeuid/see-everyones-fits/releases/latest)).
+   [VirusTotal: 0/64, no antivirus engine flags it](https://www.virustotal.com/gui/file/7ac35c311322af56de1190e97a0402e59bccc244f1e931ef3793d6e601203dcd).
 2. Install the zip one of two ways:
    - Drag the zip into the ReSkate launcher's **Mods** tab, or
    - Extract it into a new folder inside your ReSkate `Mods` folder (e.g. `Mods\See_Everyones_Fits`).
@@ -121,6 +124,9 @@ list what each mod adds or replaces and to build previews.
 
 **Check the download**
 - VirusTotal: [1.1.0 scans clean, 0/64](https://www.virustotal.com/gui/file/7ac35c311322af56de1190e97a0402e59bccc244f1e931ef3793d6e601203dcd). Each release links its own scan in the release notes.
+
+  ![VirusTotal: 0/64 for See_Everyones_Fits-1.1.0.zip](https://raw.githubusercontent.com/vapeuid/see-everyones-fits/main/release/virustotal-1.1.0.png)
+
 - SHA-256 checksum of each release zip: in the release notes. In PowerShell:
   `Get-FileHash .\See_Everyones_Fits.zip -Algorithm SHA256`
 
