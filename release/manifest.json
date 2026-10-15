@@ -1,6 +1,6 @@
 {
   "name": "See_Everyones_Fits",
-  "version_number": "1.0.0",
+  "version_number": "1.1.0",
   "website_url": "https://github.com/vapeuid/see-everyones-fits",
   "description": "Stop seeing default fits. Auto-installs the most-worn cosmetics and boards from Thunderstore so other skaters' modded outfits actually show up for you. You pick the space and the types. Open source.",
   "dependencies": []

@@ -23,7 +23,8 @@ const STAGE = path.join(DIST, name);
 // what goes into the package: [source in the repo, path in the package]
 const files = [
   ['app.js'], ['lib/core.js'], ['lib/community.js'],
-  ...fs.readdirSync(path.join(ROOT, 'lib', 'format')).filter((f) => /\.(js|ps1)$/.test(f) && f !== 'test.js').map((f) => [`lib/format/${f}`]),
+  // lib/format code only: no PowerShell in releases since 1.0.1
+  ...fs.readdirSync(path.join(ROOT, 'lib', 'format')).filter((f) => /\.js$/.test(f) && f !== 'test.js').map((f) => [`lib/format/${f}`]),
   ['ui/index.html'], ['ui/viewer.js'], ['ui/bg.webp'],
   ['See Everyones Fits.bat'], ['Sync now.bat'],
   ['README.md'], ['CHANGELOG.md'], ['LICENSE'],
@@ -31,6 +32,12 @@ const files = [
 ];
 
 function fail(msg) { console.error('BUILD FAILED: ' + msg); process.exit(1); }
+
+// in a git checkout, refuse to package uncommitted app code (a release must match a commit)
+if (fs.existsSync(path.join(ROOT, '.git'))) {
+  const dirty = execFileSync('git', ['status', '--porcelain', '--', 'app.js', 'lib', 'ui', 'release', 'README.md', 'CHANGELOG.md'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  if (dirty) fail('uncommitted changes in the app files:\n' + dirty);
+}
 
 // Thunderstore's own rules for the package files
 if (!/^[A-Za-z0-9_]+$/.test(manifest.name)) fail('manifest name may only hold letters, digits and _');

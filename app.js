@@ -61,7 +61,9 @@ function serve() {
     const send = (code, body, type = 'application/json') => { res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store' }); res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body)); };
     const body = () => new Promise((ok) => { let b = ''; req.on('data', (d) => { b += d; if (b.length > 1e6) req.destroy(); }); req.on('end', () => { try { ok(JSON.parse(b || '{}')); } catch (_) { ok({}); } }); });
     // only this PC's browser, and only from our own page (blocks other websites from poking the app)
-    const origin = req.headers.origin; if (origin && origin !== `http://127.0.0.1:${PORT}`) return send(403, { error: 'forbidden' });
+    // only requests addressed to this PC's app (blocks other websites, including DNS-rebinding tricks)
+    const host = String(req.headers.host || '').toLowerCase(); if (host !== `127.0.0.1:${PORT}` && host !== `localhost:${PORT}`) return send(403, { error: 'forbidden' });
+    const origin = req.headers.origin; if (origin && origin !== `http://127.0.0.1:${PORT}` && origin !== `http://localhost:${PORT}`) return send(403, { error: 'forbidden' });
     try {
       if (req.method === 'GET' && req.url === '/') return send(200, fs.readFileSync(UI), 'text/html; charset=utf-8');
       if (req.method === 'GET' && req.url === '/bg.webp') return send(200, fs.readFileSync(path.join(__dirname, 'ui', 'bg.webp')), 'image/webp');
@@ -91,7 +93,7 @@ function serve() {
       if (req.method === 'POST' && req.url === '/api/run') { const p = await body(); runJob(String(p.action)).catch(() => {}); return send(200, { ok: true }); }
       if (req.method === 'POST' && req.url === '/api/config') {
         const p = await body(); const cfg = core.loadConfig();
-        if (p.capMB != null) cfg.capMB = Math.min(20000, Math.max(100, Math.round(Number(p.capMB) || 2048)));
+        if (p.capMB != null) cfg.capMB = Math.min(20480, Math.max(100, Math.round(Number(p.capMB) || 2048)));
         if (p.maxModMB != null) cfg.maxModMB = Math.min(1000, Math.max(5, Math.round(Number(p.maxModMB) || 150)));
         if (Array.isArray(p.protect)) cfg.protect = p.protect.filter((s) => core.SLOT_NAMES.includes(s));
         if (Array.isArray(p.protect)) {   // Thunderstore categories follow the types: decks on -> Skateboards, any clothing type on -> Cosmetics
@@ -120,6 +122,7 @@ function openBrowser() { try { execFileSync('cmd', ['/c', 'start', '', `http://1
   const cmd = (process.argv[2] || 'app').toLowerCase();
   if (cmd === 'app') return serve();
   if (cmd === 'status') { const s = core.status(core.loadConfig(), core.loadState()); console.log(`Synced mods: ${s.count}, ${s.usedMB} of ${s.capMB} MB`); s.mods.forEach((m) => console.log(`  ${m.folder} ${m.version}  ${m.mb} MB`)); return; }
-  await runJob(['sync', 'clear', 'repair'].includes(cmd) ? cmd : 'preview');
+  if (!['preview', 'sync', 'clear', 'repair'].includes(cmd)) { console.log('usage: node app.js [app|preview|sync|status|clear|repair]'); process.exitCode = 1; return; }
+  await runJob(cmd);
   if (job.error) process.exitCode = 1;
 })();

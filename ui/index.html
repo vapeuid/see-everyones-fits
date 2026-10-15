@@ -173,7 +173,7 @@
 
 <section class="wrap" id="tab-settings" hidden>
   <div class="grid">
-    <div class="card"><h2>Storage limit</h2><div class="num" id="capLabel">-</div><input type="range" id="cap" min="500" max="20000" step="250"><div class="est" id="capEst"></div><div class="note">Space for synced cosmetics; your own mods do not count. <span id="freeNote"></span></div></div>
+    <div class="card"><h2>Storage limit</h2><div class="num" id="capLabel">-</div><input type="range" id="cap" min="500" max="20480" step="250"><div class="est" id="capEst"></div><div class="note">Space for synced cosmetics; your own mods do not count. <span id="freeNote"></span></div></div>
     <div class="card"><h2>Biggest single mod</h2><div class="num" id="maxLabel">-</div><input type="range" id="maxMod" min="20" max="500" step="10"><div class="note">Bigger packs are skipped.</div></div>
   </div>
   <div class="card" style="margin-top:18px"><h2>What gets added</h2>
@@ -285,6 +285,7 @@ let VIEW = null, LOOK = null;
 function openLook(name, start = 0) {
   const x = (REV.items || []).find((i) => i.name === name); if (!x) return;
   LOOK = { x, items: (x.items || []).filter((i) => i.key) };
+  if (!LOOK.items.length) { LOOK = null; return; }
   $('lookTitle').textContent = name.split('-').slice(1).join('-').replace(/_/g, ' ') || name;
   $('lookItems').innerHTML = LOOK.items.map((i, n) => `<button class="chip${n === 0 ? ' on' : ''}" data-item="${n}">${i.change === 'replaces' ? 'Replaces: ' : ''}${esc(i.item)}</button>`).join('');
   $('look').hidden = false; document.body.style.overflow = 'hidden';

@@ -1,6 +1,6 @@
 # See Everyone's Fits
 
-![See Everyone's Fits](release/see-everyones-fits.gif)
+![See Everyone's Fits](https://raw.githubusercontent.com/vapeuid/see-everyones-fits/main/release/see-everyones-fits.gif)
 
 In ReSkate you only see someone's modded fit if you have that exact mod installed. Everyone else's drip shows up as
 stock gear for you. **See Everyone's Fits** fixes that: it keeps the most-worn cosmetic and board mods on Thunderstore
@@ -91,9 +91,11 @@ Yes, and you don't have to take our word for it: everything it runs is in this r
 - No tracking, no accounts, no ads.
 
 **The only places it connects to**
-- `thunderstore.io`: the mod list and the mod downloads (the same site the ReSkate launcher uses).
+- `thunderstore.io` and its file server `gcdn.thunderstore.io`: the mod list, the mod downloads and the mod pictures
+  in the Review tab (the same site the ReSkate launcher uses).
 - `ntfy.sh`: the optional community list. It shares only the Thunderstore names of your switched-on cosmetic mods,
-  under a random id, and reads what other users posted in the last 12 hours. One switch in Settings turns it off.
+  under a random id, and reads what other users posted in the last 12 hours. The list is public, and like any
+  website ntfy.sh sees your IP address. One switch in Settings turns it off.
 - `127.0.0.1`: the app window itself. It only answers your own PC and refuses requests from other websites.
 
 **The only places it writes to**
@@ -102,18 +104,19 @@ Yes, and you don't have to take our word for it: everything it runs is in this r
   mods you installed yourself.
 - `%LOCALAPPDATA%\SeeEveryonesFits`: settings, download cache and preview cache. Delete it to reset the app.
 
-It also reads (never writes) the game's own data files, to list what each mod adds or replaces and to build previews.
+It also reads (never writes) the game's own data files and ReSkate's item-name cache in `%LOCALAPPDATA%\ReSkate`, to
+list what each mod adds or replaces and to build previews.
 
-**The two files antivirus might ask about**
+**About antivirus**
 - `node\node.exe` is the official [Node.js](https://nodejs.org) v24.20.0 runtime, unchanged, so you don't have to
   install anything. Check it yourself: right-click it → Properties → Digital Signatures → **OpenJS Foundation**.
   SHA-256: `5C976096E04E5C2C1F091938926234CC9FBEBFE9787DDD149351B3B0ECC707B5`.
-- `lib\format\oodle.ps1` (85 lines) is the one part a virus scanner might flag. ReSkate's game files are
-  compressed with Oodle. To read them, this small PowerShell script loads the game's own `oo2core_9_win64.dll` from
-  your ReSkate folder and calls its one decompress function, `OodleLZ_Decompress`. Node can't call a DLL directly,
-  so the script compiles a few lines of C# to do it, and it runs with `-ExecutionPolicy Bypass` because Windows
-  blocks unsigned scripts by default. Some malware uses the same technique, so pattern-based scanners can flag it
-  even though this script only reads and decompresses game data. Read it; it's short.
+- **No PowerShell and no DLL loading.** The game stores its files compressed with Oodle. Since 1.1 the app
+  decompresses them itself in plain JavaScript (`lib/format/oodle.js`, see Third-party code below), checked
+  byte-for-byte against the game's own library on 23,801 pieces of game and mod data. Version 1.0.0 used a small
+  PowerShell helper for this instead; 6 of 66 VirusTotal scanners flagged it by pattern (five of them use
+  BitDefender's engine, plus CTX), so it is gone. The only programs the app starts are Windows' own `tasklist` (to see whether ReSkate is open),
+  `tar` (to unpack mod zips) and `start` (to open the app in your browser).
 
 **Check the download**
 - VirusTotal scan of each release: linked in the release notes.
@@ -131,8 +134,8 @@ ReSkate keeps its own merged copy of your mods, so actual disk use can be up to 
 - `lib/core.js` ranks Thunderstore packages, downloads and unpacks them safely, checks clashes and your type settings,
   and writes ReSkate's `Mods\mods.json` (with a backup) only while the launcher and the game are closed.
 - `lib/format/` reads the game's and the mods' data files to list exactly which items a mod adds or replaces and to
-  build previews. It only reads the game and Mods folders. Compressed data is decoded with the game's own Oodle
-  library, loaded from your game folder.
+  build previews. It only reads (the game, Mods and ReSkate's item-name cache). Compressed data is decoded in plain JavaScript
+  (`lib/format/oodle.js`).
 
 ## Licence
 
@@ -140,3 +143,9 @@ Source: https://github.com/vapeuid/see-everyones-fits
 
 GPL-3.0 (see `LICENSE`). The bundled `node/node.exe` is Node.js under its own licence (`node/LICENSE`).
 Not affiliated with ReSkate, Thunderstore or EA. Provided as is; no support is promised.
+
+## Third-party code
+
+`lib/format/oodle.js` is a JavaScript port of the Kraken decompressor from **ooz**
+(https://github.com/powzix/ooz, `kraken.cpp`), Copyright (C) 2016 Powzix, licensed under the GNU General Public
+License version 3 or (at your option) any later version. The port is distributed under the same licence.
