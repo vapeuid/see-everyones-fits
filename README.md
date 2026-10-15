@@ -33,6 +33,9 @@ the more people use it.
 
 ## Install
 
+The app is only available here on GitHub (it is not on Thunderstore). It downloads the cosmetic mods themselves from
+Thunderstore, where ReSkate mods are hosted, so you never have to.
+
 1. Download **`See_Everyones_Fits-<version>.zip`** from the
    [latest release](https://github.com/vapeuid/see-everyones-fits/releases/latest) (under *Assets*).
 2. Install the zip one of two ways:
@@ -77,7 +80,7 @@ removes ones that dropped out. `Sync now.bat` does the same without opening the 
 - Everything runs on your PC (`127.0.0.1`). Settings and cache live in `%LOCALAPPDATA%\SeeEveryonesFits`.
 - Community list (on by default, one switch to turn off): shares only the Thunderstore names of your switched-on
   cosmetic mods, under a random id, through a public ntfy.sh channel. Nothing else leaves your PC.
-- Mod downloads come only from Thunderstore.
+- The cosmetic mods are downloaded only from Thunderstore, where ReSkate mods are hosted.
 
 ## Disk use
 
