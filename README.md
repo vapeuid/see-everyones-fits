@@ -47,7 +47,7 @@ Thunderstore, where ReSkate mods are hosted, so you never have to.
    The app opens in your browser. Keep the black window open while you use it; close it to quit.
 
 Nothing else to install. Windows only. Windows may warn about an app from the internet the first time; choose
-*More info → Run anyway* (the full source is in this repo).
+*More info → Run anyway*. What it does and how to check it: [Is it safe?](#is-it-safe)
 
 ## How to use
 
@@ -77,12 +77,44 @@ removes ones that dropped out. `Sync now.bat` does the same without opening the 
 - Delete `%LOCALAPPDATA%\SeeEveryonesFits` to reset the app.
 - If a preview doesn't show, the mod still works in game; some formats aren't supported by the preview yet.
 
-## Privacy
+## Is it safe?
 
-- Everything runs on your PC (`127.0.0.1`). Settings and cache live in `%LOCALAPPDATA%\SeeEveryonesFits`.
-- Community list (on by default, one switch to turn off): shares only the Thunderstore names of your switched-on
-  cosmetic mods, under a random id, through a public ntfy.sh channel. Nothing else leaves your PC.
-- The cosmetic mods are downloaded only from Thunderstore, where ReSkate mods are hosted.
+Yes, and you don't have to take our word for it: everything it runs is in this repo, in plain readable files.
+
+**What it does not do**
+- No installer and no admin rights. It never touches the registry, never adds itself to startup and never runs in the
+  background: it only runs while its black window is open.
+- No tracking, no accounts, no ads.
+
+**The only places it connects to**
+- `thunderstore.io`: the mod list and the mod downloads (the same site the ReSkate launcher uses).
+- `ntfy.sh`: the optional community list. It shares only the Thunderstore names of your switched-on cosmetic mods,
+  under a random id, and reads what other users posted in the last 12 hours. One switch in Settings turns it off.
+- `127.0.0.1`: the app window itself. It only answers your own PC and refuses requests from other websites.
+
+**The only places it writes to**
+- Your ReSkate `Mods` folder: the mods it installs, and `mods.json` (the launcher's mod list). It backs `mods.json` up
+  first as `mods.json.bak-seefits`, only changes it while the launcher and the game are closed, and never touches
+  mods you installed yourself.
+- `%LOCALAPPDATA%\SeeEveryonesFits`: settings, download cache and preview cache. Delete it to reset the app.
+
+It also reads (never writes) the game's own data files, to list what each mod adds or replaces and to build previews.
+
+**The two files antivirus might ask about**
+- `node\node.exe` is the official [Node.js](https://nodejs.org) v24.20.0 runtime, unchanged, so you don't have to
+  install anything. Check it yourself: right-click it → Properties → Digital Signatures → **OpenJS Foundation**.
+  SHA-256: `5C976096E04E5C2C1F091938926234CC9FBEBFE9787DDD149351B3B0ECC707B5`.
+- `lib\format\oodle.ps1` (85 lines) is the one part a virus scanner might flag. ReSkate's game files are
+  compressed with Oodle. To read them, this small PowerShell script loads the game's own `oo2core_9_win64.dll` from
+  your ReSkate folder and calls its one decompress function, `OodleLZ_Decompress`. Node can't call a DLL directly,
+  so the script compiles a few lines of C# to do it, and it runs with `-ExecutionPolicy Bypass` because Windows
+  blocks unsigned scripts by default. Some malware uses the same technique, so pattern-based scanners can flag it
+  even though this script only reads and decompresses game data. Read it; it's short.
+
+**Check the download**
+- VirusTotal scan of each release: linked in the release notes.
+- SHA-256 checksum of each release zip: in the release notes. In PowerShell:
+  `Get-FileHash .\See_Everyones_Fits.zip -Algorithm SHA256`
 
 ## Disk use
 
