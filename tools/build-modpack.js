@@ -49,7 +49,7 @@ const fail = (msg) => { console.error('BUILD FAILED: ' + msg); process.exit(1); 
   const dependencies = picked.map((i) => `${i.name}-${i.version}`);
   const description = "You won't look different. Everyone else will. The most-worn ReSkate cosmetics and boards in one click, so other skaters' modded fits actually show up. No clashes. Updated weekly. Full app free on GitHub.";
   if (description.length > 250) fail('description too long');
-  const manifest = { name: 'See_Everyones_Fits', version_number: version, website_url: 'https://github.com/vapeuid/see-everyones-fits', description, dependencies };
+  const manifest = { name: arg('name', (last && last.name) || 'See_Everyones_Fits_Pack'), version_number: version, website_url: 'https://github.com/vapeuid/see-everyones-fits', description, dependencies };
 
   // the pack's own game content (the See Everyone's Fits deck, built with ReSkate Studio), if present
   const content = path.join(ROOT, 'release', 'pack-content');
@@ -109,6 +109,6 @@ const fail = (msg) => { console.error('BUILD FAILED: ' + msg); process.exit(1); 
   const zip = path.join(ROOT, 'dist', name + '.zip');
   fs.rmSync(zip, { force: true });
   execFileSync(path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe'), ['-a', '-c', '-f', zip, '-C', stage, ...fs.readdirSync(stage)]);
-  fs.writeFileSync(lastFile, JSON.stringify({ version, builtAt: new Date().toISOString(), capMB, usedMB: summary.usedMB, dependencies }, null, 2) + '\n');
+  fs.writeFileSync(lastFile, JSON.stringify({ name: manifest.name, version, builtAt: new Date().toISOString(), capMB, usedMB: summary.usedMB, dependencies }, null, 2) + '\n');
   console.log(`\nBuilt ${path.relative(ROOT, zip)}: ${picked.length} mods, ${summary.usedMB} MB. Upload it to Thunderstore (category Modpacks).${hasDeck ? "" : " (No deck yet: put the Studio-built deck mod in release/pack-content/.)"}`);
 })().catch((e) => fail(e.message));
