@@ -37,13 +37,9 @@ the more people use it.
 
 ## Install
 
-The app is only available here on GitHub. It downloads the cosmetic mods themselves from Thunderstore, where ReSkate
+The app is only available here on GitHub (ReSkate's Thunderstore only takes in-game content, not programs that run
+outside the game). It downloads the cosmetic mods themselves from Thunderstore, where ReSkate
 mods are hosted, so you never have to.
-
-> **Just want it in one click?** Get the **[See Everyone's Fits Pack](https://thunderstore.io/c/reskate/p/SkrtTeamZZ/See_Everyones_Fits_Pack/)**
-> on Thunderstore (or search "See Everyones Fits Pack" in the launcher's Mods tab). It installs this week's top ~240
-> cosmetics. **It is waiting for Thunderstore's approval:** until then it does not show up in the launcher and cannot install
-> its mods, so use the app below. The app is for choosing your own space and types, 3D previews and automatic clean-up.
 
 1. **[Download See_Everyones_Fits.zip](https://github.com/vapeuid/see-everyones-fits/releases/latest/download/See_Everyones_Fits.zip)**
    (always the newest version; also on the [releases page](https://github.com/vapeuid/see-everyones-fits/releases/latest)).
