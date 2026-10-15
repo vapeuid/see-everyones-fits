@@ -4,6 +4,7 @@
   See Everyone's Fits - keeps the most popular ReSkate cosmetics installed so you see more of what other skaters wear.
 
     node app.js            opens the app in your browser (this PC only, http://127.0.0.1:4777)
+    node app.js window     opens it in its own window and quits when that window is closed (the .exe does this)
     node app.js preview    what a sync would install / remove, nothing changes
     node app.js sync       do it (close the ReSkate launcher and the game first)
     node app.js status     what is synced now
@@ -21,6 +22,31 @@ const community = require('./lib/community');
 
 const PORT = 4777;
 const UI = path.join(__dirname, 'ui', 'index.html');
+const os = require('os');
+// the release zip carries manifest.json next to app.js; a source checkout has it in release/
+const VERSION = (() => { for (const f of ['manifest.json', path.join('release', 'manifest.json')]) { try { return JSON.parse(fs.readFileSync(path.join(__dirname, f), 'utf8')).version_number; } catch (_) {} } return '0.0.0'; })();
+const REPO = 'vapeuid/see-everyones-fits';
+let latest = null;   // newest release on GitHub, checked once per start; the app never updates itself
+async function checkLatest() {
+  try {
+    const r = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: { 'User-Agent': `SeeEveryonesFits/${VERSION}`, Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(10000) });
+    if (!r.ok) return;
+    const j = await r.json(); const v = String(j.tag_name || '').replace(/^v/, '');
+    if (/^\d+\.\d+\.\d+$/.test(v)) latest = { version: v, url: j.html_url };
+  } catch (_) {}
+}
+const newer = (a, b) => { const x = a.split('.').map(Number), y = b.split('.').map(Number); for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] > y[i]; return false; };
+// a short report people can paste when something goes wrong: no folder paths, no user names
+function supportInfo() {
+  const cfg = core.loadConfig(); const st = core.loadState(); const scrub = (t) => String(t || '').replace(/[A-Za-z]:[\\/][^\s'"]*/g, '<path>');
+  let mods = 'n/a'; try { mods = core.modsInfo(cfg).folders.length; } catch (e) { mods = 'error: ' + scrub(e.message); }
+  const rv = core.readJson(core.REVIEW_FILE, null); const s = core.status(cfg, st);
+  return [`See Everyone's Fits ${VERSION}`, `Windows ${os.release()}, Node ${process.version}`,
+    `Game found: ${core.gameDir(cfg) ? 'yes' : 'NO'} (inside Mods folder: ${core.IN_MODS ? 'yes' : 'no'})`, `Mod folders: ${mods}`,
+    `Synced: ${s.count} mods, ${s.usedMB} of ${s.capMB} MB`, `Last check: ${rv ? `${rv.at} - ${rv.items.length} mods looked at, ${rv.newCount} new` : 'none yet'}`,
+    `Last job: ${job.action || 'none'}${job.running ? ' (running)' : ''}${job.error ? ' - ERROR: ' + scrub(job.error) : ''}`,
+    `Community list: ${cfg.community ? 'on' : 'off'}, NSFW: ${cfg.includeNsfw ? 'on' : 'off'}`].join('\n');
+}
 
 // ----------------------------------------------------------------------------- community list (anonymous, mod names only)
 async function communityCounts(cfg) {
@@ -51,13 +77,17 @@ async function runJob(action) {
     else if (action === 'clear') core.clear(cfg, state);
     else if (action === 'repair') core.repair(cfg, state);
     else throw new Error('unknown action ' + action);
-  } catch (e) { job.error = e.message; core.log('ERROR: ' + e.message); }
+  } catch (e) { job.error = e.message; core.log('ERROR: ' + e.message); core.endLive && core.endLive(); }
   finally { job.running = false; job.finishedAt = Date.now(); core.setSink(null); }
 }
 
 // ----------------------------------------------------------------------------- local app server (127.0.0.1 only)
-function serve() {
+let lastSeen = Date.now();
+function serve(windowed) {
+  checkLatest();
+  if (windowed) setInterval(() => { if (!job.running && Date.now() - lastSeen > 120000) process.exit(0); }, 15000);   // window closed: no requests for 2 min
   const srv = http.createServer(async (req, res) => {
+    lastSeen = Date.now();
     const send = (code, body, type = 'application/json') => { res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store' }); res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body)); };
     const body = () => new Promise((ok) => { let b = ''; req.on('data', (d) => { b += d; if (b.length > 1e6) req.destroy(); }); req.on('end', () => { try { ok(JSON.parse(b || '{}')); } catch (_) { ok({}); } }); });
     // only this PC's browser, and only from our own page (blocks other websites from poking the app)
@@ -69,10 +99,11 @@ function serve() {
       if (req.method === 'GET' && req.url === '/bg.webp') return send(200, fs.readFileSync(path.join(__dirname, 'ui', 'bg.webp')), 'image/webp');
       if (req.method === 'GET' && req.url === '/api/state') {
         const cfg = core.loadConfig(); const state = core.loadState();
-        return send(200, { config: cfg, game: core.gameDir(cfg), inMods: core.IN_MODS, status: core.status(cfg, state), slots: core.SLOT_NAMES, slotLabels: core.SLOT_LABEL, job: { running: job.running, action: job.action, error: job.error, finishedAt: job.finishedAt }, hasReview: fs.existsSync(core.REVIEW_FILE) });
+        return send(200, { version: VERSION, update: latest && newer(latest.version, VERSION) ? latest : null, config: cfg, game: core.gameDir(cfg), inMods: core.IN_MODS, status: core.status(cfg, state), slots: core.SLOT_NAMES, slotLabels: core.SLOT_LABEL, job: { running: job.running, action: job.action, error: job.error, finishedAt: job.finishedAt }, hasReview: fs.existsSync(core.REVIEW_FILE) });
       }
-      if (req.method === 'GET' && req.url === '/api/review') return send(200, core.readJson(core.REVIEW_FILE, { items: [] }));
+      if (req.method === 'GET' && req.url === '/api/review') return send(200, core.liveReview() || core.readJson(core.REVIEW_FILE, { items: [] }));
       if (req.method === 'GET' && req.url === '/api/job') return send(200, job);
+      if (req.method === 'GET' && req.url === '/api/support') return send(200, { text: supportInfo() });
       if (req.method === 'GET' && req.url.startsWith('/api/preview?')) {
         const q = new URL(req.url, 'http://x').searchParams;
         const mod = q.get('mod') || '', key = q.get('key') || '';
@@ -112,17 +143,28 @@ function serve() {
       send(404, { error: 'not found' });
     } catch (e) { send(500, { error: e.message }); }
   });
-  srv.on('error', (e) => { if (e.code === 'EADDRINUSE') { console.log(`See Everyone's Fits is already open: http://127.0.0.1:${PORT}/`); openBrowser(); process.exit(0); } else throw e; });
-  srv.listen(PORT, '127.0.0.1', () => { console.log(`See Everyone's Fits is open in your browser: http://127.0.0.1:${PORT}/\nClose this window to quit.`); openBrowser(); });
+  srv.on('error', (e) => { if (e.code === 'EADDRINUSE') { console.log(`See Everyone's Fits is already open: http://127.0.0.1:${PORT}/`); openBrowser(windowed); process.exit(0); } else throw e; });
+  srv.listen(PORT, '127.0.0.1', () => { console.log(`See Everyone's Fits ${VERSION} is open: http://127.0.0.1:${PORT}/` + (windowed ? '' : '\nClose this window to quit.')); openBrowser(windowed); });
 }
-function openBrowser() { try { execFileSync('cmd', ['/c', 'start', '', `http://127.0.0.1:${PORT}/`]); } catch (_) {} }
+// windowed: Microsoft Edge in app mode (its own window, no tabs or address bar); otherwise the default browser
+function openBrowser(windowed) {
+  const url = `http://127.0.0.1:${PORT}/`;
+  if (process.env.SEEFITS_NO_BROWSER) return;   // automated tests
+  if (windowed) {
+    for (const base of [process.env['ProgramFiles(x86)'], process.env.ProgramFiles, process.env.LOCALAPPDATA]) {
+      const edge = base && path.join(base, 'Microsoft', 'Edge', 'Application', 'msedge.exe');
+      if (edge && fs.existsSync(edge)) { try { require('child_process').spawn(edge, [`--app=${url}`, '--window-size=1280,860'], { detached: true, stdio: 'ignore' }).unref(); return; } catch (_) {} }
+    }
+  }
+  try { execFileSync('cmd', ['/c', 'start', '', url]); } catch (_) {}
+}
 
 // ----------------------------------------------------------------------------- command line
 (async () => {
   const cmd = (process.argv[2] || 'app').toLowerCase();
-  if (cmd === 'app') return serve();
+  if (cmd === 'app' || cmd === 'window') return serve(cmd === 'window');
   if (cmd === 'status') { const s = core.status(core.loadConfig(), core.loadState()); console.log(`Synced mods: ${s.count}, ${s.usedMB} of ${s.capMB} MB`); s.mods.forEach((m) => console.log(`  ${m.folder} ${m.version}  ${m.mb} MB`)); return; }
-  if (!['preview', 'sync', 'clear', 'repair'].includes(cmd)) { console.log('usage: node app.js [app|preview|sync|status|clear|repair]'); process.exitCode = 1; return; }
+  if (!['preview', 'sync', 'clear', 'repair'].includes(cmd)) { console.log('usage: node app.js [app|window|preview|sync|status|clear|repair]'); process.exitCode = 1; return; }
   await runJob(cmd);
   if (job.error) process.exitCode = 1;
 })();

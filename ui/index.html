@@ -115,6 +115,12 @@
   .ba figure { margin:0; flex:1; display:flex; flex-direction:column; min-width:0; max-width:420px; }
   .ba img { width:100%; flex:1; min-height:0; object-fit:contain; image-rendering:auto; background:#0006; }
   .ba figcaption { font:900 14px/1 var(--head); text-transform:uppercase; text-align:center; padding-top:8px; }
+  .banner { display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding:12px 16px; margin:0 0 14px; border:2px solid #000; box-shadow:4px 4px 0 #000; font-weight:700; }
+  .banner.bad { background:var(--red); color:#fff; } .banner.new { background:var(--mint); color:#032417; }
+  .banner a { color:inherit; } .banner .btn { padding:8px 14px; font-size:15px; }
+  .bigempty { grid-column:1/-1; text-align:center; padding:40px 16px; }
+  .bigempty b { display:block; font:900 24px/1.2 var(--head); text-transform:uppercase; text-shadow:3px 3px 0 #000; margin-bottom:10px; }
+  .bigempty p { color:var(--dim); margin:0 auto 16px; max-width:520px; }
   [hidden] { display:none !important; }
 
   @media (max-width:640px) {
@@ -139,6 +145,7 @@
 
 <main>
 <section class="wrap" id="tab-home">
+  <div id="banners"></div>
   <div class="hero">
     <h1>See everyone's <span>fits</span></h1>
     <p>Keeps the most-worn cosmetics and boards from Thunderstore installed, so other skaters' modded outfits actually show up for you.</p>
@@ -185,6 +192,7 @@
     <label class="tog"><input type="checkbox" id="community"> Community list: rank by what other See Everyone's Fits users actually wear (anonymous, shares only mod names)</label>
   </div>
   <div class="card" style="margin-top:18px"><h2>ReSkate folder</h2><input class="text" id="dir"><div class="note" id="dirNote"></div></div>
+  <div class="card" style="margin-top:18px"><h2>Help</h2><div class="row"><button class="btn" id="btnSupport">Copy support info</button><span class="note" id="supportNote"></span></div><div class="note">Copies a short report (version, whether the game was found, last check and any error, with no folder paths or names) so you can paste it to whoever is helping you. <span id="versionNote"></span></div></div>
   <div class="row" style="margin-top:18px"><button class="btn go" id="btnSettings">Save settings</button><span class="note" id="setNote"></span></div>
 </section>
 </main>
@@ -224,9 +232,22 @@ async function refresh() {
   $('btnSync').disabled = busy || ST.job.running; $('btnPreview').disabled = ST.job.running; $('btnClear').disabled = busy || ST.job.running || !s.count;
   if (ST.job.running || (ST.job.finishedAt && ST.job.finishedAt !== lastJobAt)) pollJob();
   if (!document.activeElement || !$('tab-settings').contains(document.activeElement)) fillSettings();
-  if (ST.hasReview) { const r = REV || await api('/api/review'); REV = r; $('lastPlan').innerHTML = `${r.newCount || 0} <small>new</small> ${r.removeCount || 0} <small>out</small>`; $('lastPlanNote').textContent = `Checked ${new Date(r.at).toLocaleString()} · planned ${gb(Math.round(r.usedMB))}`; }
-  else { $('lastPlan').textContent = '-'; $('lastPlanNote').textContent = 'Press "Check for changes" to see what a sync would do.'; }
+  drawBanners();
+  if (ST.hasReview && !(REV && REV.running)) { const r = REV || await api('/api/review'); REV = r; $('lastPlan').innerHTML = `${r.newCount || 0} <small>new</small> ${r.removeCount || 0} <small>out</small>`; $('lastPlanNote').textContent = `Checked ${new Date(r.at).toLocaleString()} · planned ${gb(Math.round(r.usedMB))}`; }
+  else if (!ST.hasReview) { $('lastPlan').textContent = '-'; $('lastPlanNote').textContent = 'Press "Check for changes" to see what a sync would do.'; }
 }
+function drawBanners() {
+  const b = [];
+  if (!ST.game) b.push(`<div class="banner bad">ReSkate wasn't found. Put the See Everyone's Fits folder inside your ReSkate <u>Mods</u> folder (or drag the zip into the launcher's Mods tab), then open the app from there.</div>`);
+  if (ST.update) b.push(`<div class="banner new">Version ${esc(ST.update.version)} is out (you have ${esc(ST.version)}). <a class="btn" href="${esc(ST.update.url)}" target="_blank" rel="noopener">Get it</a></div>`);
+  $('banners').innerHTML = b.join('');
+  $('versionNote').textContent = `Version ${ST.version}.`;
+}
+$('btnSupport').onclick = async () => {
+  const r = await api('/api/support');
+  try { await navigator.clipboard.writeText(r.text); $('supportNote').textContent = 'Copied. Paste it in your message.'; }
+  catch (_) { prompt('Copy this support info:', r.text); }
+};
 async function run(action) {
   if (action === 'clear' && !confirm('Remove every mod this app installed? Your own mods stay.')) return;
   await api('/api/run', { action }); $('log').hidden = false; $('log').textContent = ''; pollJob();
@@ -250,15 +271,29 @@ const FILTERS = [['planned', 'Will install'], ['clash', 'Clashes'], ['protected'
 async function loadReview() {
   REV = await api('/api/review'); choice = {};
   (REV.pins || []).forEach((n) => (choice[n] = 'pin')); (REV.block || []).forEach((n) => (choice[n] = 'skip'));
-  $('reviewNote').textContent = REV.at ? `From the check on ${new Date(REV.at).toLocaleString()}. Pinned mods go in first and win clashes; skipped mods are never installed. Save, then Sync now.` : 'Run "Check for changes" on Home first.';
+  if (REV.running) $('reviewNote').textContent = `Checking mods: ${REV.checked} looked at so far${REV.downloadedMB ? `, ${gb(Math.round(REV.downloadedMB))} downloaded` : ''}. Results fill in below as they come. The first check takes a while; later ones are quick.`;
+  else $('reviewNote').textContent = REV.at ? `From the check on ${new Date(REV.at).toLocaleString()}. Pinned mods go in first and win clashes; skipped mods are never installed. Save, then Sync now.` : '';
   drawReview();
+  clearTimeout(reviewTimer);
+  if (REV.running && !$('tab-review').hidden) reviewTimer = setTimeout(loadReview, 3000);   // keep filling in while the check runs
 }
+let reviewTimer = null;
 function drawReview() {
   const all = REV.items || [];
   $('filters').innerHTML = FILTERS.map(([k, l]) => `<button class="chip${k === FILTER ? ' on' : ''}" data-f="${k}">${l} ${k === 'all' ? all.length : all.filter((x) => x.status === k).length}</button>`).join('');
   const list = all.filter((x) => (FILTER === 'all' || x.status === FILTER) && (!Q || (x.name + ' ' + (x.items || []).map((i) => i.slot + ' ' + i.item).join(' ')).toLowerCase().includes(Q)));
-  $('mods').innerHTML = list.length ? list.map(card).join('') : '<div class="empty">Nothing here.</div>';
+  $('mods').innerHTML = list.length ? list.map(card).join('') : emptyReview(all);
 }
+function emptyReview(all) {
+  const big = (t, p, btn) => `<div class="bigempty"><b>${t}</b><p>${p}</p>${btn ? '<button class="btn alt" id="btnCheckHere">Check for changes</button>' : ''}</div>`;
+  if (REV.running) return big('Checking…', 'The first mods show up here in a few seconds.');
+  if (!REV.at && ST && !ST.game) return big('ReSkate not found', "Put the See Everyone's Fits folder inside your ReSkate Mods folder (or drag the zip into the launcher's Mods tab), then open the app from there.");
+  if (!REV.at && ST && ST.job && ST.job.error) return big('The last check failed', esc(ST.job.error) + '<br>Fix that, then try again.', true);
+  if (!REV.at) return big('No check yet', 'Press Check for changes: the app looks at the most popular mods and lists here what it would install. Nothing changes until you press Sync now.', true);
+  if (all.length) return '<div class="empty">Nothing in this group. Try All.</div>';
+  return '<div class="empty">Nothing here.</div>';
+}
+document.addEventListener('click', (e) => { if (e.target && e.target.id === 'btnCheckHere') { run('preview'); setTimeout(loadReview, 1500); } });
 function card(x) {
   const c = choice[x.name]; const slots = [...new Set((x.items || []).map((i) => (ST && ST.slotLabels && ST.slotLabels[i.slot]) || i.slot))];
   const label = { planned: 'Will install', clash: 'Clash', protected: 'Turned off', remove: 'To remove' }[x.status] || x.status;

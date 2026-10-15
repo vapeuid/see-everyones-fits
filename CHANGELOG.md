@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0
+
+- The app opens in its own window (no browser tabs or address bar), and its console starts minimized in the taskbar;
+  closing the app window quits.
+- The Review tab shows live progress during a check, with mods appearing as they are looked at, and explains why it is
+  empty (no check yet, ReSkate not found, or what went wrong).
+- A banner says when ReSkate is not found and how to fix it, and when a newer version is out.
+- Settings > Help > **Copy support info**: a short report without folder paths or names, for asking for help.
+
 ## 1.1.0
 
 - No PowerShell any more: the game's compressed files are now decoded in plain JavaScript (a port of the Kraken

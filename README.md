@@ -2,7 +2,7 @@
 
 ![See Everyone's Fits](https://raw.githubusercontent.com/vapeuid/see-everyones-fits/main/release/see-everyones-fits.gif)
 
-**[⬇ Download](https://github.com/vapeuid/see-everyones-fits/releases/latest/download/See_Everyones_Fits.zip)** · ✅ **[VirusTotal: 0/64 clean](https://www.virustotal.com/gui/file/7ac35c311322af56de1190e97a0402e59bccc244f1e931ef3793d6e601203dcd)** · Open source (GPL-3.0) · Windows · [Is it safe?](#is-it-safe)
+**[⬇ Download](https://github.com/vapeuid/see-everyones-fits/releases/latest/download/See_Everyones_Fits.zip)** · ✅ **[VirusTotal: 0/66 clean](https://www.virustotal.com/gui/file/37290e7e380973ec9520f56d0e06d0c8856532701bb4d8fc79d72231ca8e7a4d)** · Open source (GPL-3.0) · Windows · [Is it safe?](#is-it-safe)
 
 In ReSkate you only see someone's modded fit if you have that exact mod installed. Everyone else's drip shows up as
 stock gear for you. **See Everyone's Fits** fixes that: it keeps the most-worn cosmetic and board mods on Thunderstore
@@ -43,12 +43,12 @@ mods are hosted, so you never have to.
 
 1. **[Download See_Everyones_Fits.zip](https://github.com/vapeuid/see-everyones-fits/releases/latest/download/See_Everyones_Fits.zip)**
    (always the newest version; also on the [releases page](https://github.com/vapeuid/see-everyones-fits/releases/latest)).
-   [VirusTotal: 0/64, no antivirus engine flags it](https://www.virustotal.com/gui/file/7ac35c311322af56de1190e97a0402e59bccc244f1e931ef3793d6e601203dcd).
+   [VirusTotal: 0/66, no antivirus engine flags it](https://www.virustotal.com/gui/file/37290e7e380973ec9520f56d0e06d0c8856532701bb4d8fc79d72231ca8e7a4d).
 2. Install the zip one of two ways:
    - Drag the zip into the ReSkate launcher's **Mods** tab, or
    - Extract it into a new folder inside your ReSkate `Mods` folder (e.g. `Mods\See_Everyones_Fits`).
-3. Open that folder and double-click **`See Everyones Fits.bat`**.
-   The app opens in your browser. Keep the black window open while you use it; close it to quit.
+3. Open that folder and double-click **`See Everyones Fits.bat`**. The app opens in its own window (a small minimized
+   window in the taskbar keeps it running). Close the app window to quit.
 
 Nothing else to install. Windows only. Windows may warn about an app from the internet the first time; choose
 *More info → Run anyway*. What it does and how to check it: [Is it safe?](#is-it-safe)
@@ -93,6 +93,8 @@ Yes, and you don't have to take our word for it: everything it runs is in this r
 **The only places it connects to**
 - `thunderstore.io` and its file server `gcdn.thunderstore.io`: the mod list, the mod downloads and the mod pictures
   in the Review tab (the same site the ReSkate launcher uses).
+- `api.github.com`: once per start, to see whether a newer version is out (it only shows a notice; it never
+  downloads or installs anything).
 - `ntfy.sh`: the optional community list. It shares only the Thunderstore names of your switched-on cosmetic mods,
   under a random id, and reads what other users posted in the last 12 hours. The list is public, and like any
   website ntfy.sh sees your IP address. One switch in Settings turns it off. See exactly what is shared, live:
@@ -109,6 +111,9 @@ It also reads (never writes) the game's own data files and ReSkate's item-name c
 list what each mod adds or replaces and to build previews.
 
 **About antivirus**
+- **No programs of our own.** The only program in the zip is `node\node.exe` below; everything else is readable
+  text (JavaScript, HTML and two `.bat` files). A test build with a small launcher `.exe` got flagged by a few
+  engines for that pattern (an unsigned program that starts another one), so it was never released.
 - `node\node.exe` is the official [Node.js](https://nodejs.org) v24.20.0 runtime, unchanged, so you don't have to
   install anything. Check it yourself: right-click it → Properties → Digital Signatures → **OpenJS Foundation**.
   SHA-256: `5C976096E04E5C2C1F091938926234CC9FBEBFE9787DDD149351B3B0ECC707B5`.
@@ -117,14 +122,14 @@ list what each mod adds or replaces and to build previews.
   byte-for-byte against the game's own library on 23,801 pieces of game and mod data. Version 1.0.0 used a small
   PowerShell helper for this instead; 6 of 66 VirusTotal scanners flagged it by pattern (five of them use
   BitDefender's engine, plus CTX), so it is gone. The only programs the app starts are Windows' own `tasklist` (to see whether ReSkate is open),
-  `tar` (to unpack mod zips) and `start` (to open the app in your browser).
+  `tar` (to unpack mod zips) and `start` or Microsoft Edge (to open the app window).
 
 **Check the download**
-- VirusTotal: [1.1.0 scans clean, 0/64](https://www.virustotal.com/gui/file/7ac35c311322af56de1190e97a0402e59bccc244f1e931ef3793d6e601203dcd). Each release links its own scan in the release notes.
+- VirusTotal: [1.2.0 scans clean, 0/66](https://www.virustotal.com/gui/file/37290e7e380973ec9520f56d0e06d0c8856532701bb4d8fc79d72231ca8e7a4d). Each release links its own scan in the release notes.
 
-  ![VirusTotal: 0/64 for See_Everyones_Fits-1.1.0.zip](https://raw.githubusercontent.com/vapeuid/see-everyones-fits/main/release/virustotal-1.1.0.png)
+  ![VirusTotal: 0/66 for See_Everyones_Fits-1.2.0.zip](https://raw.githubusercontent.com/vapeuid/see-everyones-fits/main/release/virustotal-1.2.0.png)
 
-- SHA-256 of the 1.1.0 zip: `7AC35C311322AF56DE1190E97A0402E59BCCC244F1E931EF3793D6E601203DCD` (each release lists its own
+- SHA-256 of the 1.2.0 zip: `37290E7E380973EC9520F56D0E06D0C8856532701BB4D8FC79D72231CA8E7A4D` (each release lists its own
   in the release notes). Check yours in PowerShell:
   `Get-FileHash .\See_Everyones_Fits.zip -Algorithm SHA256`
 

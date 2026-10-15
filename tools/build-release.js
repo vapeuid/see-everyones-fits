@@ -58,6 +58,7 @@ const problems = check(STAGE);   // before node.exe goes in: it is a binary from
 if (problems.length) { console.error(problems.join('\n')); fail('privacy check found the lines above'); }
 fs.mkdirSync(path.join(STAGE, 'node'), { recursive: true });
 fs.copyFileSync(process.execPath, path.join(STAGE, 'node', 'node.exe'));
+
 fs.copyFileSync(nodeLicense, path.join(STAGE, 'node', 'LICENSE'));
 
 const zip = path.join(DIST, name + '.zip');
