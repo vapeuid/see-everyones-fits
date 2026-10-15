@@ -2,7 +2,7 @@
 
 ![See Everyone's Fits](https://raw.githubusercontent.com/vapeuid/see-everyones-fits/main/release/see-everyones-fits.gif)
 
-**[⬇ Download](https://github.com/vapeuid/see-everyones-fits/releases/latest/download/See_Everyones_Fits.zip)** · ✅ **[VirusTotal: 0/66 clean](https://www.virustotal.com/gui/file/37290e7e380973ec9520f56d0e06d0c8856532701bb4d8fc79d72231ca8e7a4d)** · Open source (GPL-3.0) · Windows · [Is it safe?](#is-it-safe)
+**[⬇ Download](https://github.com/vapeuid/see-everyones-fits/releases/latest/download/See_Everyones_Fits.zip)** · ✅ **[VirusTotal: 0/64 clean](https://www.virustotal.com/gui/file/22ee1d80a2ee13ba94ace9231981166190fcc94634938a1b1035b495328a627d)** · Open source (GPL-3.0) · Windows · [Is it safe?](#is-it-safe)
 
 In ReSkate you only see someone's modded fit if you have that exact mod installed. Everyone else's drip shows up as
 stock gear for you. **See Everyone's Fits** fixes that: it keeps the most-worn cosmetic and board mods on Thunderstore
@@ -43,7 +43,7 @@ mods are hosted, so you never have to.
 
 1. **[Download See_Everyones_Fits.zip](https://github.com/vapeuid/see-everyones-fits/releases/latest/download/See_Everyones_Fits.zip)**
    (always the newest version; also on the [releases page](https://github.com/vapeuid/see-everyones-fits/releases/latest)).
-   [VirusTotal: 0/66, no antivirus engine flags it](https://www.virustotal.com/gui/file/37290e7e380973ec9520f56d0e06d0c8856532701bb4d8fc79d72231ca8e7a4d).
+   [VirusTotal: 0/64, no antivirus engine flags it](https://www.virustotal.com/gui/file/22ee1d80a2ee13ba94ace9231981166190fcc94634938a1b1035b495328a627d).
 2. Install the zip one of two ways:
    - Drag the zip into the ReSkate launcher's **Mods** tab, or
    - Extract it into a new folder inside your ReSkate `Mods` folder (e.g. `Mods\See_Everyones_Fits`).
@@ -125,11 +125,9 @@ list what each mod adds or replaces and to build previews.
   `tar` (to unpack mod zips) and `start` or Microsoft Edge (to open the app window).
 
 **Check the download**
-- VirusTotal: [1.2.0 scans clean, 0/66](https://www.virustotal.com/gui/file/37290e7e380973ec9520f56d0e06d0c8856532701bb4d8fc79d72231ca8e7a4d). Each release links its own scan in the release notes.
+- VirusTotal: [1.2.1 scans clean, 0/64](https://www.virustotal.com/gui/file/22ee1d80a2ee13ba94ace9231981166190fcc94634938a1b1035b495328a627d). Each release links its own scan in the release notes.
 
-  ![VirusTotal: 0/66 for See_Everyones_Fits-1.2.0.zip](https://raw.githubusercontent.com/vapeuid/see-everyones-fits/main/release/virustotal-1.2.0.png)
-
-- SHA-256 of the 1.2.0 zip: `37290E7E380973EC9520F56D0E06D0C8856532701BB4D8FC79D72231CA8E7A4D` (each release lists its own
+- SHA-256 of the 1.2.1 zip: `22EE1D80A2EE13BA94ACE9231981166190FCC94634938A1B1035B495328A627D` (each release lists its own
   in the release notes). Check yours in PowerShell:
   `Get-FileHash .\See_Everyones_Fits.zip -Algorithm SHA256`
 
